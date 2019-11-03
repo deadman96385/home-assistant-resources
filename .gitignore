@@ -1,0 +1,17 @@
+# Ignore folders.
+.storage
+.cloud
+
+# Ensure these YAML files are ignored, otherwise your secret data/credentials will leak.
+ip_bans.yaml
+secrets.yaml
+known_devices.yaml
+
+# Custom files that i have
+.uuid
+aircast.xml
+insteon_plm_device_info.dat
+google_tts.json
+.august.conf
+home-assistant.log
+home-assistant_v2.db

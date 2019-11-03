@@ -1,0 +1,158 @@
+
+# Configure a default setup of Home Assistant (frontend, api, etc)
+#default_config:
+cloud:
+config:
+frontend:
+#history:
+#logbook:
+#map:
+#mobile_app:
+person:
+ssdp:
+sun:
+system_health:
+updater:
+zeroconf:
+
+breaking_changes:
+
+webhook:
+
+pi_hole:
+
+insteon:
+  host: !secret insteon_host
+  ip_port: !secret insteon_port
+  username: !secret insteon_username
+  password: !secret insteon_password
+  hub_version: 2
+  device_override:
+    # Stairs motion sensor
+    - address: 4dd44b
+      cat: 0x10
+      subcat: 0x16
+    # Led Power Plug
+    - address: 4e44c2
+      cat: 0x02
+      subcat: 0x38
+
+input_number:
+  target_led:
+    name: Number of Leds
+    min: 4
+    max: 300
+    step: 4
+    unit_of_measurement: leds
+    icon: mdi:target
+  test_animation_speed:
+    name: Test Animation Speed
+    initial: 150
+    min: 1
+    max: 150
+    step: 10
+ 
+zigbee2mqtt_networkmap:
+   #topic: your topic (optional, default zigbee2mqtt)
+panel_iframe:
+   networkmap:
+     title: 'Zigbee Map'
+     url: '/local/community/zigbee2mqtt_networkmap/map.html'
+     icon: 'mdi:graphql'
+
+mqtt:
+  broker: core-mosquitto # This will have to be your mqtt broker, Mosquitto addon is recommended.
+  discovery: true
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+  birth_message:
+    topic: 'hass/status'
+    payload: 'online'
+  will_message:
+    topic: 'hass/status'
+    payload: 'offline'
+
+input_boolean:
+  zigbee_permit_join:
+    name: Allow devices to join
+    initial: off
+    icon: mdi:cellphone-wireless
+
+timer:
+  zigbee_permit_join:
+    name: Time remaining
+    duration: 600 # Updated this to the number of seconds you wish
+
+light:
+  - platform: mqtt
+    schema: json
+    name: "Test Strip"
+    state_topic: "led/led"
+    command_topic: "led/led/set"
+    availability_topic: "led/led/availability"
+    effect: true
+    effect_list:
+      - solid
+      - clear
+      - twinkle
+      - cylon bounce
+      - fire
+      - fade in out
+      - strobe
+      - theater chase
+      - rainbow cycle
+      - color wipe
+      - running lights
+      - snow sparkle
+      - sparkle
+      - twinkle random
+      - lightning
+    brightness: true
+    rgb: true
+    white_value: true
+    optimistic: false
+    qos: 0
+
+hacs:
+  token: !secret hacs_token
+  sidepanel_title: "HACS"
+  theme: true
+
+# Sensors
+sensor:
+  # Weather prediction
+  - platform: yr
+
+  - platform: mqtt
+    name: Bridge state
+    state_topic: "zigbee2mqtt/bridge/state"
+    icon: mdi:router-wireless
+
+  - platform: template
+    sensors:
+      aug_battery_life:
+        friendly_name: "Battery Level"
+        entity_id: lock.front_door
+        icon_template: "mdi:battery-charging"
+        value_template: "{{ states.lock.front_door.attributes.battery_level }}"
+      aug_changed_by:
+        friendly_name: "Last person to unlock"
+        entity_id: lock.front_door
+        icon_template: "mdi:account"
+        value_template: "{{ states.lock.front_door.attributes.changed_by }}"
+
+# Text to speech
+tts:
+  - platform: google_cloud
+    key_file: google_tts.json
+    voice: en-US-Wavenet-F
+    service_name: google_say
+
+august:
+  login_method: !secret august_login_method
+  username: !secret august_username
+  password: !secret august_password
+
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml

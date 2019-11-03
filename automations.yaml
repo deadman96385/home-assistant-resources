@@ -1,0 +1,67 @@
+  - id: enable_zigbee_join
+    alias: Enable Zigbee joining
+    hide_entity: true
+    trigger:
+      platform: state
+      entity_id: input_boolean.zigbee_permit_join
+      to: 'on'
+    action:
+    - service: mqtt.publish
+      data:
+        topic: zigbee2mqtt/bridge/config/permit_join
+        payload: 'true'
+    - service: timer.start
+      data:
+        entity_id: timer.zigbee_permit_join
+  - id: disable_zigbee_join
+    alias: Disable Zigbee joining
+    trigger:
+    - entity_id: input_boolean.zigbee_permit_join
+      platform: state
+      to: 'off'
+    action:
+    - data:
+        payload: 'false'
+        topic: zigbee2mqtt/bridge/config/permit_join
+      service: mqtt.publish
+    - data:
+        entity_id: timer.zigbee_permit_join
+      service: timer.cancel
+    hide_entity: true
+  - id: disable_zigbee_join_timer
+    alias: Disable Zigbee joining by timer
+    hide_entity: true
+    trigger:
+    - platform: event
+      event_type: timer.finished
+      event_data:
+        entity_id: timer.zigbee_permit_join
+    action:
+    - service: mqtt.publish
+      data:
+        topic: zigbee2mqtt/bridge/config/permit_join
+        payload: 'false'
+    - service: input_boolean.turn_off
+      data:
+        entity_id: input_boolean.zigbee_permit_join
+  - alias: led slider moved
+    trigger:
+      platform: state
+      entity_id: input_number.target_led
+    action:
+      service: mqtt.publish
+      data_template:
+        topic: 'led/led/num'
+        retain: true
+        payload_template: "{{ states.input_number.target_led.state | int }}"
+  - alias: "Test Animation Speed"
+    initial_state: True
+    hide_entity: False
+    trigger:
+      - platform: state
+        entity_id: input_slider.test_animation_speed
+    action:
+      - service: mqtt.publish
+        data_template:
+          topic: "led/led/set"
+          payload: '{"transition":{{ trigger.to_state.state | int }}}'
