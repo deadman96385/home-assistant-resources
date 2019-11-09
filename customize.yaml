@@ -1,0 +1,4 @@
+climate.bedroom_thermostat:
+  friendly_name: Bed Room Thermostat
+sensor.amazon_fireamazon_fire_battery_sensor:
+  friendly_name: Bedroom Battery

@@ -3,9 +3,6 @@
 #default_config:
 cloud:
 config:
-frontend:
-#history:
-#logbook:
 #map:
 #mobile_app:
 person:
@@ -20,6 +17,39 @@ breaking_changes:
 webhook:
 
 pi_hole:
+
+homeassistant:
+  customize: !include customize.yaml
+  whitelist_external_dirs:
+    - /tmp
+
+frontend:
+  themes: !include_dir_merge_named themes
+
+history:
+  include:
+    entities:
+      - climate.bedroom_thermostat
+      - climate.living_dining_room_thermostat
+
+logbook:
+  include:
+    entities:
+      - climate.bedroom_thermostat
+      - climate.living_dining_room_thermostat
+
+camera:
+  - platform: foscam
+    ip: !secret foscam_ip
+    username: !secret foscam_username
+    password: !secret foscam_password
+
+telegram_bot:
+  - platform: broadcast
+    api_key: !secret telegram_api_key
+    allowed_chat_ids:
+      - !secret telegram_chat_id1
+    
 
 insteon:
   host: !secret insteon_host
@@ -51,7 +81,7 @@ input_number:
     min: 1
     max: 150
     step: 10
- 
+
 zigbee2mqtt_networkmap:
    #topic: your topic (optional, default zigbee2mqtt)
 panel_iframe:
@@ -63,6 +93,7 @@ panel_iframe:
 mqtt:
   broker: core-mosquitto # This will have to be your mqtt broker, Mosquitto addon is recommended.
   discovery: true
+  discovery_prefix: homeassistant
   username: !secret mqtt_username
   password: !secret mqtt_password
   birth_message:
@@ -118,10 +149,36 @@ hacs:
   sidepanel_title: "HACS"
   theme: true
 
+badnest:
+  issue_token: !secret badnest_issue_token
+  cookie: !secret badnest_cookie
+  region: us
+
 # Sensors
 sensor:
   # Weather prediction
   - platform: yr
+
+  - platform: badnest
+
+  - platform: template
+    sensors:
+      bedroom_heating:
+        value_template: >
+          {% if is_state_attr('climate.bedroom_thermostat', 'hvac_action', 'heating') %}
+          on
+          {% else %}
+          off
+          {% endif %}
+        friendly_name: Bedroom Heating
+      living_room_heating:
+        value_template: >
+          {% if is_state_attr('climate.living_dining_room_thermostat', 'hvac_action', 'heating') %}
+          on
+          {% else %}
+          off
+          {% endif %}
+        friendly_name: Living Room Heating
 
   - platform: mqtt
     name: Bridge state
